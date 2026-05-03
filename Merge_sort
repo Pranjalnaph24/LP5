@@ -1,0 +1,84 @@
+#include <iostream>
+#include <vector>
+#include <omp.h>
+using namespace std;
+
+// Merge function
+void merge(vector<int>& arr, int left, int mid, int right) {
+	vector<int> temp;
+	int i = left, j = mid + 1;
+
+	while (i <= mid && j <= right) {
+		if (arr[i] < arr[j]) temp.push_back(arr[i++]);
+		else temp.push_back(arr[j++]);
+	}
+
+	while (i <= mid) temp.push_back(arr[i++]);
+	while (j <= right) temp.push_back(arr[j++]);
+
+	for (int k = 0; k < temp.size(); k++) {
+		arr[left + k] = temp[k];
+	}
+}
+
+// Sequential Merge Sort
+void mergeSort(vector<int>& arr, int left, int right) {
+	if (left >= right) return;
+
+	int mid = (left + right) / 2;
+
+	mergeSort(arr, left, mid);
+	mergeSort(arr, mid + 1, right);
+
+	merge(arr, left, mid, right);
+}
+
+// Parallel Merge Sort
+void parallelMergeSort(vector<int>& arr, int left, int right) {
+	if (left >= right) return;
+
+	int mid = (left + right) / 2;
+
+	#pragma omp task shared(arr)
+	parallelMergeSort(arr, left, mid);
+
+	#pragma omp task shared(arr)
+	parallelMergeSort(arr, mid + 1, right);
+
+	#pragma omp taskwait
+	merge(arr, left, mid, right);
+}
+
+int main() {
+
+	int n;
+	cout << "Enter number of elements: ";
+	cin >> n;
+
+	vector<int> arr(n);
+	cout << "Enter elements:\n";
+	for (int i = 0; i < n; i++) cin >> arr[i];
+
+	vector<int> arr1 = arr;
+	vector<int> arr2 = arr;
+
+	// Sequential
+	double start = omp_get_wtime();
+	mergeSort(arr1, 0, n - 1);
+	double end = omp_get_wtime();
+	cout << "\nSequential Merge Sort Time: " << end - start << endl;
+
+	// Parallel
+	start = omp_get_wtime();
+	#pragma omp parallel
+	{
+		#pragma omp single
+		parallelMergeSort(arr2, 0, n - 1);
+	}
+	end = omp_get_wtime();
+	cout << "Parallel Merge Sort Time: " << end - start << endl;
+
+	cout<<"Sorted list"<< endl;
+	for(int x : arr2) cout<< x <<" ";
+	return 0;
+}
