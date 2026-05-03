@@ -64,6 +64,8 @@ int main() {
     end = omp_get_wtime();
     cout << "Parallel Bubble Sort Time: " << end - start << endl;
     
-
+    cout << "\n Sorted Array:\n";
+    for (int x : arr2) cout << x << " ";
+   
     return 0;
 }
