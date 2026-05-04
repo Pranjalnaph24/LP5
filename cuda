@@ -72,3 +72,58 @@ int main() {
 
     return 0;
 }
+
+
+//matrix multiplication
+
+
+%%cu
+#include <iostream>
+using namespace std;
+
+__global__
+void add(int* A, int* B, int* C, int size) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (tid < size) {
+        C[tid] = A[tid] + B[tid];
+    }
+}
+
+int main() {
+    int N = 4;
+
+    int A[] = {1,2,3,4};
+    int B[] = {5,6,7,8};
+    int C[4];
+
+    int *dA, *dB, *dC;
+
+    cudaMalloc(&dA, N*sizeof(int));
+    cudaMalloc(&dB, N*sizeof(int));
+    cudaMalloc(&dC, N*sizeof(int));
+
+    cudaMemcpy(dA, A, N*sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dB, B, N*sizeof(int), cudaMemcpyHostToDevice);
+
+    // Launch kernel
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+
+    add<<<blocksPerGrid, threadsPerBlock>>>(dA, dB, dC, N);
+
+    
+    cudaDeviceSynchronize();
+
+    
+    cudaMemcpy(C, dC, N * sizeof(int), cudaMemcpyDeviceToHost);
+
+    cout << "Result: ";
+    for(int i=0;i<N;i++) cout << C[i] << " ";
+
+    cudaFree(dA);
+    cudaFree(dB);
+    cudaFree(dC);
+
+    return 0;
+}
