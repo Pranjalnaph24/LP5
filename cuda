@@ -1,0 +1,74 @@
+Step 1: Save file
+vector_add.cu
+Step 2 : nvcc vector_add.cu -o vector_add
+Step 3 : ./vector_add
+
+#include <iostream>
+using namespace std;
+
+// CUDA Kernel
+__global__
+void add(int* A, int* B, int* C, int size) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (tid < size) {
+        C[tid] = A[tid] + B[tid];
+    }
+}
+
+int main() {
+
+    int N;
+    cout << "Enter size of vector:\n";
+    cin >> N;
+
+    int *A = new int[N];
+    int *B = new int[N];
+    int *C = new int[N];
+
+    cout << "Enter " << N << " elements of vector A:\n";
+    for (int i = 0; i < N; i++) cin >> A[i];
+
+    cout << "Enter " << N << " elements of vector B:\n";
+    for (int i = 0; i < N; i++) cin >> B[i];
+
+    int *dA, *dB, *dC;
+
+    // Allocate GPU memory
+    cudaMalloc(&dA, N * sizeof(int));
+    cudaMalloc(&dB, N * sizeof(int));
+    cudaMalloc(&dC, N * sizeof(int));
+
+    // Copy data CPU → GPU
+    cudaMemcpy(dA, A, N * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dB, B, N * sizeof(int), cudaMemcpyHostToDevice);
+
+    // Launch kernel
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+
+    add<<<blocksPerGrid, threadsPerBlock>>>(dA, dB, dC, N);
+
+    // Wait for GPU to finish
+    cudaDeviceSynchronize();
+
+    // Copy result GPU → CPU
+    cudaMemcpy(C, dC, N * sizeof(int), cudaMemcpyDeviceToHost);
+
+    cout << "Result vector:\n";
+    for (int i = 0; i < N; i++) {
+        cout << C[i] << " ";
+    }
+    cout << endl;
+
+    // Free memory
+    delete[] A;
+    delete[] B;
+    delete[] C;
+
+    cudaFree(dA);
+    cudaFree(dB);
+    cudaFree(dC);
+
+    return 0;
+}
