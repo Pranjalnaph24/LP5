@@ -1,0 +1,102 @@
+Fashion_MNist_Dataset
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow import keras
+from tensorflow.keras.layers import Flatten, Dense, Input, Conv2D, MaxPooling2D
+from tensorflow.keras.models import Sequential
+
+def load_images(path):
+    with open(path, 'rb') as f:
+        data = np.frombuffer(f.read(), np.uint8, offset=16)
+    return data.reshape(-1, 28, 28)
+
+def load_labels(path):
+    with open(path, 'rb') as f:
+        return np.frombuffer(f.read(), np.uint8, offset=8)
+
+x_train = load_images(r"C:\Users\Dnyanda\Downloads\archive (4)\train-images-idx3-ubyte")
+y_train = load_labels(r"C:\Users\Dnyanda\Downloads\archive (4)\train-labels-idx1-ubyte")
+
+x_test = load_images(r"C:\Users\Dnyanda\Downloads\archive (4)\t10k-images-idx3-ubyte")
+y_test = load_labels(r"C:\Users\Dnyanda\Downloads\archive (4)\t10k-labels-idx1-ubyte")
+
+x_train = (x_train / 255.0).reshape(-1,28,28,1)
+x_test = (x_test / 255.0).reshape(-1,28,28,1)
+
+class_names = ['T-shirt', 'Trouser', 'Pullover', 'Dress', 'Coat',
+               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+
+model = Sequential([
+    Input(shape=(28,28,1)),
+    Conv2D(32, (3,3), activation='relu'),
+    MaxPooling2D(),
+    Conv2D(64, (3,3), activation='relu'),
+    MaxPooling2D(),
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dense(10, activation='softmax')
+])
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(x_train, y_train, epochs=5)
+
+loss, acc = model.evaluate(x_test, y_test)
+print("\nTest Accuracy:", acc)
+
+predictions = model.predict(x_test)
+
+print("\nSample Predictions:\n")
+for i in range(5):
+    pred_label = np.argmax(predictions[i])
+    true_label = y_test[i]
+    print("Image", i+1)
+    print("Actual   :", class_names[true_label])
+    print("Predicted:", class_names[pred_label])
+    print()
+
+plt.figure(figsize=(12,6))
+
+for i in range(10):
+    plt.subplot(2,5,i+1)
+    plt.imshow(x_test[i].reshape(28,28), cmap="viridis", interpolation="nearest")
+    pred = np.argmax(predictions[i])
+    true = y_test[i]
+    color = "green" if pred == true else "red"
+    plt.title(f"P: {class_names[pred]}\nT: {class_names[true]}", color=color)
+    plt.axis("off")
+
+plt.suptitle("Predicted vs Actual", fontsize=16)
+plt.tight_layout()
+plt.show()
+
+plt.imshow(x_test[0].reshape(28,28), cmap='gray')
+plt.title("Predicted: " + class_names[np.argmax(predictions[0])])
+plt.axis('off')
+plt.show()
+
+
+plt.figure(figsize=(12,6))
+
+for j, i in enumerate(range(16,30)):
+    plt.subplot(3,5,j+1)
+    plt.imshow(x_test[i], cmap="viridis", interpolation="nearest")
+
+    pred = np.argmax(predictions[i])
+    true = y_test[i]
+
+    color = "green" if pred == true else "red"
+
+    plt.title(f"P: {class_names[pred]}\nT: {class_names[true]}", color=color)
+    plt.axis("off")
+
+plt.suptitle("Predicted vs Actual", fontsize=16)
+plt.tight_layout()
+plt.show()
+
+
+model.save("fashion_mnist.keras")
