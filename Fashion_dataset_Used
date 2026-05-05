@@ -51,6 +51,29 @@ print("\nTest Accuracy:", acc)
 
 predictions = model.predict(x_test)
 
+plt.imshow(test_images[0].reshape(28,28), cmap='gray')
+plt.title(class_names[test_labels[0]])
+plt.show()
+
+predictions = model.predict(test_images)
+
+plt.figure(figsize=(10,10))
+
+for i in range(16):
+    plt.subplot(4,4,i+1)
+    plt.imshow(test_images[i].reshape(28,28), cmap='gray')
+
+    predicted_label = class_names[predictions[i].argmax()]
+    actual_label = class_names[test_labels[i]]
+
+    plt.title(f"P: {predicted_label}\nA: {actual_label}")
+    plt.axis('off')
+
+plt.show()
+
+
+
+
 print("\nSample Predictions:\n")
 for i in range(5):
     pred_label = np.argmax(predictions[i])
