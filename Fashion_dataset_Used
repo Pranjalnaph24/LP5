@@ -51,12 +51,6 @@ print("\nTest Accuracy:", acc)
 
 predictions = model.predict(x_test)
 
-plt.imshow(test_images[0].reshape(28,28), cmap='gray')
-plt.title(class_names[test_labels[0]])
-plt.show()
-
-predictions = model.predict(test_images)
-
 plt.figure(figsize=(10,10))
 
 for i in range(16):
