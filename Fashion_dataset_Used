@@ -55,10 +55,10 @@ plt.figure(figsize=(10,10))
 
 for i in range(16):
     plt.subplot(4,4,i+1)
-    plt.imshow(test_images[i].reshape(28,28), cmap='gray')
+    plt.imshow(x_test[i].reshape(28,28), cmap='gray')
 
     predicted_label = class_names[predictions[i].argmax()]
-    actual_label = class_names[test_labels[i]]
+    actual_label = class_names[y_test[i]]
 
     plt.title(f"P: {predicted_label}\nA: {actual_label}")
     plt.axis('off')
